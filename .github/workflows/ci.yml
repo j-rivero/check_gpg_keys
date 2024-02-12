@@ -32,7 +32,11 @@ jobs:
       - name: Import GPG keys
         run: |
           for key in *; do
-            gpg --import "$key"
+            if file "$key" | grep -q "PGP public key block"; then
+              gpg --import "$key"
+            else
+              gpg --dearmor "$key" && gpg --import "${key}.gpg"
+            fi
           done
 
       - name: Check key expiration
@@ -54,4 +58,3 @@ jobs:
           echo "Please consider renewing them as soon as possible." >> issue.md
           echo "This issue is automatically created by a GitHub Actions workflow." >> issue.md
           gh issue create --title "GPG Key Expiry Warning" --body "$(cat issue.md)"
-
