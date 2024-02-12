@@ -2,7 +2,7 @@ name: Check GPG Key Expiry
 
 on:
   schedule:
-    - cron: "0 1 0 * *"
+    - cron: 0 0 1 * *
 
 jobs:
   check-expiration:
