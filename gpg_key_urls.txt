@@ -1,0 +1,2 @@
+https://raw.githubusercontent.com/ros/rosdistro/master/ros.key
+https://packages.osrfoundation.org/gazebo.key

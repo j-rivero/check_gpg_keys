@@ -1,0 +1,56 @@
+name: Check GPG Key Expiry
+
+on:
+  schedule:
+    - cron: "0 1 0 * *"
+
+jobs:
+  check-expiration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install gnupg
+        run: sudo apt-get install gnupg -y
+
+      - name: Read GPG key URLs from file
+        id: read-urls
+        run: |
+          mapfile -t urls < gpg_key_urls.txt
+          echo "::set-output name=urls::${urls[*]}"
+
+      - name: Download GPG keys
+        run: |
+          for url in ${{ steps.read-urls.outputs.urls }}; do
+            filename=$(basename "$url")
+            curl -sSOL "$url"
+          done
+
+      - name: Import GPG keys
+        run: |
+          for key in *; do
+            gpg --import "$key"
+          done
+
+      - name: Check key expiration
+        id: check-expiration
+        run: |
+          expiring_keys=$(gpg --list-keys --with-colons | grep "^pub" | cut -d: -f6 | xargs -I{} sh -c "echo {} && gpg --check-expire {}" | grep "Key expires" | awk '$4 <= 60' | wc -l)
+          echo "::set-output name=expiring_keys::$expiring_keys"
+
+      - name: Create issue if keys are expiring
+        if: ${{ steps.check-expiration.outputs.expiring_keys != '0' }}
+        run: |
+          expiring_keys=$(gpg --list-keys --with-colons | grep "^pub" | cut -d: -f6 | xargs -I{} sh -c "echo {} && gpg --check-expire {}" | grep "Key expires" | awk '$4 <= 60')
+          echo "The following GPG keys are expiring soon:"
+          echo "$expiring_keys"
+          echo "Creating issue..."
+          echo "## GPG Key Expiry Warning" > issue.md
+          echo "The following GPG keys are expiring in two months or less:" >> issue.md
+          echo "  - $expiring_keys" >> issue.md
+          echo "Please consider renewing them as soon as possible." >> issue.md
+          echo "This issue is automatically created by a GitHub Actions workflow." >> issue.md
+          gh issue create --title "GPG Key Expiry Warning" --body "$(cat issue.md)"
+
