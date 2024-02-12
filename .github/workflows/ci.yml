@@ -42,31 +42,32 @@ jobs:
       - name: Check key expiration
         id: check-expiration
         run: |
+          set -x
           period_of_time_to_check=$(date -d "+2 months" +%s)
+          public_keys=$(gpg --list-public-keys --with-colons | grep "^pub" | cut -d: -f5)
 
-          for key in $(gpg --list-public-keys --with-colons | grep "^pub" | cut -d: -f5); do
-              expiration_dates=$(grep -oP '(?<=\[expires: )\d{4}-\d{2}-\d{2}(?=\])' <<< "`gpg --list-public-keys "${key}"`")
+          for key in ${public_keys}; do
+              key_info=$(gpg --list-public-keys "${key}")
+              expiration_dates=$(grep -oP '(?<=\[expires: )\d{4}-\d{2}-\d{2}(?=\])' <<< "${key_info}")
               expiring_keys=""
               for expiration_date in $expiration_dates; do
               # Check if the line contains a key ID
                   # Convert the expiration date to a timestamp
                   expiration_timestamp=$(date -d "$expiration_date" +%s)
                   echo "Checking $key, the expiration date ${expiration_date} was found"
-
                   # Calculate the difference in seconds between expiration date and two months from now
                   difference=$((expiration_timestamp - period_of_time_to_check))
-
                   # If the difference is less than or equal to zero, the key is expiring within two months
                   if [ "$difference" -le 0 ]; then
                       expiring_keys="${expiring_keys}${key} "
                   fi
               done
+          done
           echo "::set-output name=expiring_keys::$expiring_keys"
 
       - name: Create issue if keys are expiring
-        if: ${{ steps.check-expiration.outputs.expiring_keys == "" }}
+        if: ${{ steps.check-expiration.outputs.expiring_keys }}
         run: |
-          expiring_keys=$(gpg --list-keys --with-colons | grep "^pub" | cut -d: -f6 | xargs -I{} sh -c "echo {} && gpg --check-expire {}" | grep "Key expires" | awk '$4 <= 60')
           echo "The following GPG keys are expiring soon:"
           echo "$expiring_keys"
           echo "Creating issue..."
