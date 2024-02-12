@@ -42,7 +42,7 @@ jobs:
       - name: Check key expiration
         id: check-expiration
         run: |
-          expiring_keys=$(gpg --list-keys --with-colons | grep "^pub" | cut -d: -f6 | xargs -I{} sh -c "echo {} && gpg --check-expire {}" | grep "Key expires" | awk '$4 <= 60' | wc -l)
+          expiring_keys=$(gpg --list-keys --with-colons | grep "^pub" | cut -d: -f6 | xargs -I{} sh -c "echo {} && gpg --list-packets {}" | grep "expire date:" | awk -F': ' '{print $2}' | while read exp; do echo $(( ( $(date -d "$exp" +%s) - $(date +%s) ) / 86400 )); done | awk '$1 <= 60' | wc -l)
           echo "::set-output name=expiring_keys::$expiring_keys"
 
       - name: Create issue if keys are expiring
