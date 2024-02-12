@@ -48,7 +48,7 @@ jobs:
 
           for key in ${public_keys}; do
               key_info=$(gpg --list-public-keys "${key}")
-              expiration_dates=$(grep -oP '(?<=\[expires: )\d{4}-\d{2}-\d{2}(?=\])' <<< "${key_info}")
+              expiration_dates=$(grep -oP '(?<=\[expires: )\d{4}-\d{2}-\d{2}(?=\])' <<< "${key_info}") || true
               expiring_keys=""
               for expiration_date in $expiration_dates; do
               # Check if the line contains a key ID
