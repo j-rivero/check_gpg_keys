@@ -1,6 +1,7 @@
 name: Check GPG Key Expiry
 
 on:
+  push:
   schedule:
     - cron: 0 0 1 * *
 
