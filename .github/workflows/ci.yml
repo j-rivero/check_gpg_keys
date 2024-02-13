@@ -16,27 +16,31 @@ jobs:
       - name: Install gnupg
         run: sudo apt-get install gnupg -y
 
-      - name: Read GPG key URLs from file
-        id: read-urls
+      - name: Read GPG keys from file
+        id: read-keys
         run: |
-          mapfile -t urls < gpg_key_urls.txt
+          while IFS= read -r line; do
+            if [[ $line =~ ^http.* ]]; then
+              urls+=("$line")
+            else
+              fingerprints+=("$line")
+            fi
+          done < gpg_key_urls.txt
           echo "::set-output name=urls::${urls[*]}"
+          echo "::set-output name=fingerprints::${fingerprints[*]}"
 
-      - name: Download GPG keys
+      - name: Download and Import GPG keys from URLs
         run: |
-          for url in ${{ steps.read-urls.outputs.urls }}; do
+          for url in ${{ steps.read-keys.outputs.urls }}; do
             filename=$(basename "$url")
             curl -sSOL "$url"
+            gpg --import "$filename"
           done
 
-      - name: Import GPG keys
+      - name: Import GPG keys from fingerprints
         run: |
-          for key in *; do
-            if file "$key" | grep -q "PGP public key block"; then
-              gpg --import "$key"
-            else
-              gpg --dearmor "$key" && gpg --import "${key}.gpg"
-            fi
+          for fingerprint in ${{ steps.read-keys.outputs.fingerprints }}; do
+            gpg --recv-keys "$fingerprint"
           done
 
       - name: Check key expiration
