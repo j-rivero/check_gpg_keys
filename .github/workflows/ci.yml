@@ -14,15 +14,15 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install gnupg
-        run: sudo apt-get install gnupg jq -y
+        run: sudo apt-get install gnupg yq -y
 
       - name: Read GPG keys from file
         id: read-keys
         run: |
-          fingerprints=($(jq -r '.keys.fingerprints | .[]' gpg_keys.yaml))
-          urls=($(jq -r '.keys.urls | .[]' gpg_keys.yaml))
+          fingerprints=($(yq eval '.keys.fingerprints[]' input.yaml))
+          urls=($(yq eval '.keys.urls[]' input.yaml))
           echo "::set-output name=fingerprints::${fingerprints[*]}"
-          echo "::set-output name=urls::${urls[*]}"
+          echo "::set-output name=urls::${urls[*]}"          
 
       - name: Download and Import GPG keys from URLs
         run: |
