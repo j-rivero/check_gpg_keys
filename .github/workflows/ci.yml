@@ -7,14 +7,17 @@ on:
 
 jobs:
   check-expiration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-noble
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Install gnupg
-        run: sudo apt-get install gnupg yq -y
+        run: |
+          sudo apt-get install gnupg -y
+          sudo snap install yq -y
+
 
       - name: Read GPG keys from file
         id: read-keys
