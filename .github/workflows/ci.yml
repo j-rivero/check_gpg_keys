@@ -19,15 +19,10 @@ jobs:
       - name: Read GPG keys from file
         id: read-keys
         run: |
-          while IFS= read -r line; do
-            if [[ $line =~ ^http.* ]]; then
-              urls+=("$line")
-            else
-              fingerprints+=("$line")
-            fi
-          done < gpg_key_urls.txt
-          echo "::set-output name=urls::${urls[*]}"
+          fingerprints=($(jq -r '.keys.fingerprints | .[]' gpg_keys.yaml))
+          urls=($(jq -r '.keys.urls | .[]' gpg_keys.yaml))
           echo "::set-output name=fingerprints::${fingerprints[*]}"
+          echo "::set-output name=urls::${urls[*]}"
 
       - name: Download and Import GPG keys from URLs
         run: |
