@@ -16,7 +16,7 @@ jobs:
       - name: Install gnupg
         run: |
           sudo apt-get install gnupg -y
-          sudo snap install yq -y
+          snap install yq -y
 
 
       - name: Read GPG keys from file
