@@ -7,7 +7,7 @@ on:
 
 jobs:
   check-expiration:
-    runs-on: ubuntu-noble
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -16,14 +16,15 @@ jobs:
       - name: Install gnupg
         run: |
           sudo apt-get install gnupg -y
-          wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64.tar.gz -O - |\
-            tar xz && sudo mv yq_linux_amd64 /usr/bin/yq
+          sudo snap install yq
+          #wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64.tar.gz -O - |\
+          #  tar xz && sudo mv yq_linux_amd64 /usr/bin/yq
 
       - name: Read GPG keys from file
         id: read-keys
         run: |
-          fingerprints=($(yq eval '.keys.fingerprints[]' input.yaml))
-          urls=($(yq eval '.keys.urls[]' input.yaml))
+          fingerprints=($(yq eval '.keys.fingerprints[]' gpg_keys.yaml))
+          urls=($(yq eval '.keys.urls[]' gpg_keys.yaml))
           echo "::set-output name=fingerprints::${fingerprints[*]}"
           echo "::set-output name=urls::${urls[*]}"          
 
