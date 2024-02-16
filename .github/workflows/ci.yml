@@ -39,7 +39,7 @@ jobs:
       - name: Import GPG keys from fingerprints
         run: |
           for fingerprint in ${{ steps.read-keys.outputs.fingerprints }}; do
-            gpg --recv-keys "$fingerprint"
+            gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys "$fingerprint"
           done
 
       - name: Check key expiration
