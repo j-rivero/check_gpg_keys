@@ -82,3 +82,5 @@ jobs:
              echo "\n"
           done
           gh issue create --title "GPG Key Expiry Warning" --body "$(cat issue.md)"
+        env:
+          GH_TOKEN: ${{ github.token }}
