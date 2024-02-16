@@ -1,5 +1,6 @@
 keys:
   fingerprints:
+    # snapshots.ros.org
     - "0x4B63CF8FDE49746E98FA01DDAD19BAB3CBF125EA"
   urls:
     - "https://raw.githubusercontent.com/ros/rosdistro/master/ros.key"
