@@ -46,7 +46,7 @@ jobs:
         id: check-expiration
         run: |
           set -x
-          period_of_time_to_check=$(date -d "+2 months" +%s)
+          period_of_time_to_check=$(date -d "+5 years" +%s)
           public_keys=$(gpg --list-public-keys --with-colons | grep "^pub" | cut -d: -f5)
 
           for key in ${public_keys}; do
